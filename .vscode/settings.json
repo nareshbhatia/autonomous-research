@@ -1,14 +1,19 @@
 {
   "cSpell.words": [
     "autodocs",
+    "camelcase",
     "clsx",
     "codegen",
     "commitlint",
     "copyfiles",
     "deepmerge",
     "dword",
+    "geocoder",
+    "lucide",
     "manypkg",
+    "mapbox",
     "nextjs",
+    "roboto",
     "tailwindcss",
     "tsup",
     "turborepo"

@@ -1,0 +1,23 @@
+/* src/App.css */
+.map-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+.geocoder {
+  position: absolute;
+  width: 50%;
+  max-width: 400px;
+}
+
+#geocoder-start {
+  left: 50px;
+  top: 10px;
+}
+
+#geocoder-end {
+  left: 320px;
+  top: 10px;
+}
