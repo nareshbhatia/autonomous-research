@@ -91,7 +91,7 @@ export function MapboxMap() {
         );
 
         const { data } = response;
-        const route = data.routes[0].geometry;
+        const routeGeometry = data.routes[0].geometry;
 
         // Remove existing route if any
         if (map.getSource('route')) {
@@ -104,7 +104,7 @@ export function MapboxMap() {
           data: {
             type: 'Feature',
             properties: {},
-            geometry: route,
+            geometry: routeGeometry,
           },
         });
 
@@ -123,7 +123,7 @@ export function MapboxMap() {
         });
 
         // Fit map to route bounds
-        const { coordinates } = route;
+        const { coordinates } = routeGeometry;
         const bounds = coordinates.reduce(
           (bounds, coord) => bounds.extend(coord as [number, number]),
           new LngLatBounds(
