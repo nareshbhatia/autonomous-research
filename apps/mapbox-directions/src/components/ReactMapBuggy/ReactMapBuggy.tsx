@@ -190,5 +190,3 @@ export function ReactMapBuggy() {
     </div>
   );
 }
-
-export default Map;

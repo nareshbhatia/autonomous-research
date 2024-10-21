@@ -195,5 +195,3 @@ export function ReactMap() {
     </div>
   );
 }
-
-export default Map;
