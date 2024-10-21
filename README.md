@@ -1,8 +1,6 @@
 # Autonomous Research
 
-** Add a short description of Autonomous Research here. **
-
-This repository was bootstrapped with [Code Shaper](https://code-shaper.dev).
+Research before the full-fledged autonomous project.
 
 ## Prerequisites for development
 
