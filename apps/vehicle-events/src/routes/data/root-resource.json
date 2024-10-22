@@ -1,0 +1,7 @@
+{
+  "_links": {
+    "vehicles": {
+      "href": "/vehicles"
+    }
+  }
+}

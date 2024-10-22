@@ -1,6 +1,6 @@
 {
-  "name": "vehicle-communications",
-  "description": "Vehicle Communications",
+  "name": "vehicle-events",
+  "description": "Vehicle Events",
   "version": "0.0.1",
   "main": "index.js",
   "sideEffects": false,
@@ -20,6 +20,7 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "morgan": "^1.10.0",
+    "redis": "^4.7.0",
     "tslib": "^2.6.3"
   },
   "devDependencies": {

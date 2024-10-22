@@ -10,7 +10,7 @@ const port = process.env.PORT ?? 8080;
 const app = createApp();
 const server = createServer(app);
 server.listen(port, () => {
-  console.log(`Vehicle Communications server listening on port ${port}`);
+  console.log(`Vehicle Events server listening on port ${port}`);
 });
 
 /*

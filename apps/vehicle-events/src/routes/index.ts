@@ -1,7 +1,7 @@
-import { moviesRouter } from './movies-router';
 import { rootRouter } from './root-router';
+import { vehiclesRouter } from './vehicles-router';
 import { Router } from 'express';
 
 export const router = Router();
 router.use('/', rootRouter);
-router.use('/movies', moviesRouter);
+router.use('/vehicles', vehiclesRouter);
