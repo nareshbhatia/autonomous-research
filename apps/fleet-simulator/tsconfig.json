@@ -21,7 +21,8 @@
     "sourceMap": true,
     "strict": true,
     "target": "esnext",
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "exclude": ["**/*.test.ts", "dist"]
 }

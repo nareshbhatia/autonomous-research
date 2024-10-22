@@ -1,30 +1,47 @@
-import { createApp } from './create-app';
-import { createServer } from 'http';
+import { FleetSimulator } from './FleetSimulator';
+import type { LocationUpdate } from './types/MapboxDirections';
+import axios from 'axios';
 
-/*
- * -----------------------------------------------------------------------------
- * Start the HTTP Server using the Express App
- * -----------------------------------------------------------------------------
- */
-const port = process.env.PORT ?? 8080;
-const app = createApp();
-const server = createServer(app);
-server.listen(port, () => {
-  console.log(`Fleet Simulator server listening on port ${port}`);
-});
+const mapboxToken = process.env.MAPBOX_TOKEN ?? '';
 
-/*
- * -----------------------------------------------------------------------------
- * When SIGINT is received (i.e. Ctrl-C is pressed), shutdown services
- * -----------------------------------------------------------------------------
- */
-process.on('SIGINT', () => {
-  console.log('SIGINT received ...');
+async function main() {
+  const simulator = new FleetSimulator(
+    1000, // Update every 1 seconds
+    { minLat: 37.7, maxLat: 37.8, minLon: -122.5, maxLon: -122.4 }, // San Francisco area
+    mapboxToken,
+  );
 
-  console.log('Shutting down the server');
-  server.close(() => {
-    console.log('Server stopped ...');
-    console.log('Exiting process ...');
-    process.exit(0);
+  // Add vehicles every 2 seconds
+  for (let i = 1; i <= 10; i++) {
+    await simulator.addVehicle(`v${i}`);
+    if (i < 10) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+
+  // Listen for location updates
+  simulator.on('locationUpdate', (update: LocationUpdate) => {
+    const url = `http://localhost:8080`;
+    axios
+      .post(url, update)
+      .then(() => true)
+      .catch((error) => {
+        console.error('Error posting location:', error);
+      });
   });
-});
+
+  // Start the simulation
+  simulator.start();
+
+  /*
+   * Run for 5 minutes
+   * await new Promise((resolve) => setTimeout(resolve, 300000));
+   */
+
+  /*
+   * Stop the simulation
+   * simulator.stop();
+   */
+}
+
+main().catch(console.error);
