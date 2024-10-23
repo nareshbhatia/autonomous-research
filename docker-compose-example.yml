@@ -1,0 +1,31 @@
+services:
+  fleet-simulator:
+    image: nareshbhatia/fleet-simulator:1.0.0
+    depends_on:
+      - vehicle-events
+    environment:
+      - MAPBOX_TOKEN=[add your mapbox token here]
+      - VEHICLE_EVENTS_URL=http://vehicle-events:8080
+
+  vehicle-events:
+    image: nareshbhatia/vehicle-events:1.0.0
+    depends_on:
+      - redis-server
+    environment:
+      - PORT=8080
+      - REDIS_URL=redis://redis-server:6379
+      - REDIS_LOCATION_UPDATES_CHANNEL=location-updates
+
+  api-gateway:
+    image: nareshbhatia/api-gateway:1.0.0
+    depends_on:
+      - redis-server
+    environment:
+      - PORT=8080
+      - REDIS_URL=redis://redis-server:6379
+      - REDIS_LOCATION_UPDATES_CHANNEL=location-updates
+    ports:
+      - '8080:8080'
+
+  redis-server:
+    image: redis

@@ -8,12 +8,14 @@
     "build": "tsup",
     "clean": "rimraf .turbo node_modules dist coverage",
     "dev": "nodemon",
+    "docker-build": "run-s build _docker-build",
     "format": "prettier --list-different '**/*.{js,jsx,ts,tsx,json,md}'",
     "format:fix": "npm run format -- --write",
     "lint": "eslint '**/*.{js,jsx,ts,tsx}'",
     "lint:fix": "npm run lint -- --fix",
     "start": "node dist/index.js",
-    "test": "jest --coverage --passWithNoTests"
+    "test": "jest --coverage --passWithNoTests",
+    "_docker-build": "docker build -t nareshbhatia/fleet-simulator:1.0.0 ."
   },
   "dependencies": {
     "axios": "^1.7.7",

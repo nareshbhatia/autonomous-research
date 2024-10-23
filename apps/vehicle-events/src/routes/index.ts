@@ -1,7 +1,7 @@
+import { locationUpdateRouter } from './location-update-router';
 import { rootRouter } from './root-router';
-import { vehiclesRouter } from './vehicles-router';
 import { Router } from 'express';
 
 export const router = Router();
 router.use('/', rootRouter);
-router.use('/vehicles', vehiclesRouter);
+router.use('/location-update', locationUpdateRouter);

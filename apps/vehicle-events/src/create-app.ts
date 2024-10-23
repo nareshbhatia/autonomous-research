@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
-import morgan from 'morgan';
+// import morgan from 'morgan';
 
 function appErrorHandler(
   err: Error,
@@ -23,7 +23,7 @@ export function createApp() {
   const app = express();
 
   // Add middleware to log requests
-  app.use(morgan('combined'));
+  /* app.use(morgan('combined')); */
 
   // Add middleware to enable CORS
   app.use(cors());

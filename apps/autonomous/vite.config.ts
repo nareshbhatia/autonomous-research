@@ -12,9 +12,9 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3001,
+    port: 3000,
   },
   preview: {
-    port: 3001,
+    port: 3000,
   },
 });

@@ -3,6 +3,8 @@ import type { LocationUpdate } from './types/MapboxDirections';
 import axios from 'axios';
 
 const mapboxToken = process.env.MAPBOX_TOKEN ?? '';
+const vehicleEventsUrl =
+  process.env.VEHICLE_EVENTS_URL ?? 'http://vehicle-events:8080';
 
 async function main() {
   const simulator = new FleetSimulator(
@@ -12,6 +14,7 @@ async function main() {
   );
 
   // Add vehicles every 2 seconds
+  console.log('fleet-simulator: adding vehicles...');
   for (let i = 1; i <= 10; i++) {
     await simulator.addVehicle(`v${i}`);
     if (i < 10) {
@@ -21,7 +24,8 @@ async function main() {
 
   // Listen for location updates
   simulator.on('locationUpdate', (update: LocationUpdate) => {
-    const url = `http://localhost:8080`;
+    // send location update to vehicle events service
+    const url = `${vehicleEventsUrl}/location-update`;
     axios
       .post(url, update)
       .then(() => true)
@@ -31,6 +35,7 @@ async function main() {
   });
 
   // Start the simulation
+  console.log('fleet-simulator: started');
   simulator.start();
 
   /*

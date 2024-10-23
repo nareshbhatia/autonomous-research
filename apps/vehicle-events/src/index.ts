@@ -6,11 +6,11 @@ import { createServer } from 'http';
  * Start the HTTP Server using the Express App
  * -----------------------------------------------------------------------------
  */
-const port = process.env.PORT ?? 8080;
+const port = process.env.PORT ?? '8080';
 const app = createApp();
 const server = createServer(app);
 server.listen(port, () => {
-  console.log(`Vehicle Events server listening on port ${port}`);
+  console.log(`vehicle-events: listening on port ${port}`);
 });
 
 /*
