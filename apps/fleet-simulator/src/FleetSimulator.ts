@@ -35,8 +35,8 @@ export class FleetSimulator extends EventEmitter {
 
     const vehicle: Vehicle = {
       id,
-      latitude: location[1],
-      longitude: location[0],
+      lat: location[1],
+      lng: location[0],
       speed: this.randomBetween(30, 80), // Random speed between 30 and 80 km/h
       route: [],
       routeIndex: 0,
@@ -94,8 +94,8 @@ export class FleetSimulator extends EventEmitter {
       await this.updateVehicleLocation(vehicle);
       const update: LocationUpdate = {
         vehicleId: id,
-        latitude: vehicle.latitude,
-        longitude: vehicle.longitude,
+        lat: vehicle.lat,
+        lng: vehicle.lng,
         timestamp: Date.now(),
       };
       this.emit('locationUpdate', update);
@@ -113,8 +113,8 @@ export class FleetSimulator extends EventEmitter {
 
     // Calculate distance to next point
     const distance = this.haversineDistance(
-      vehicle.latitude,
-      vehicle.longitude,
+      vehicle.lat,
+      vehicle.lng,
       nextPoint[1],
       nextPoint[0],
     );
@@ -125,12 +125,12 @@ export class FleetSimulator extends EventEmitter {
     if (timeToNextPoint <= this.updateIntervalMs / 1000) {
       // Vehicle has reached (or passed) the next point
       vehicle.routeIndex++;
-      [vehicle.longitude, vehicle.latitude] = nextPoint;
+      [vehicle.lng, vehicle.lat] = nextPoint;
     } else {
       // Interpolate new position
       const ratio = this.updateIntervalMs / 1000 / timeToNextPoint;
-      vehicle.latitude += (nextPoint[1] - vehicle.latitude) * ratio;
-      vehicle.longitude += (nextPoint[0] - vehicle.longitude) * ratio;
+      vehicle.lat += (nextPoint[1] - vehicle.lat) * ratio;
+      vehicle.lng += (nextPoint[0] - vehicle.lng) * ratio;
     }
 
     // Occasionally change speed
@@ -141,7 +141,7 @@ export class FleetSimulator extends EventEmitter {
   }
 
   private async getNewRoute(vehicle: Vehicle): Promise<void> {
-    const startPoint: [number, number] = [vehicle.longitude, vehicle.latitude];
+    const startPoint: [number, number] = [vehicle.lng, vehicle.lat];
     const endPoint = this.getRandomPointInBounds();
     vehicle.route = await this.getRoute(startPoint, endPoint);
     // console.log(`Vehicle ${vehicle.id} new route:`, vehicle.route);

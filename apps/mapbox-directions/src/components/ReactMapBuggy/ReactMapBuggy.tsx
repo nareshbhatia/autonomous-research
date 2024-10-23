@@ -24,6 +24,14 @@ interface RouteGeoJSON {
   geometry: LineString;
 }
 
+interface Viewport {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+  bearing?: number;
+  pitch?: number;
+}
+
 export function ReactMapBuggy() {
   // eslint-disable-next-line no-restricted-syntax
   const mapRef = useRef<MapRef | null>(null);
@@ -32,7 +40,7 @@ export function ReactMapBuggy() {
   // eslint-disable-next-line no-restricted-syntax
   const geocoderContainerRefEnd = useRef<HTMLDivElement | null>(null);
 
-  const [viewport, setViewport] = useState({
+  const [viewport, setViewport] = useState<Viewport>({
     longitude: -98.5795,
     latitude: 39.8283,
     zoom: 3,

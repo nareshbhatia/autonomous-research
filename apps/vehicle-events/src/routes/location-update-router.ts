@@ -5,13 +5,6 @@ const redisUrl = process.env.REDIS_URL ?? 'redis://redis-server:6379';
 const redisChannel =
   process.env.REDIS_LOCATION_UPDATES_CHANNEL ?? 'location-updates';
 
-interface LocationUpdate {
-  vehicleId: string;
-  latitude: number;
-  longitude: number;
-  timestamp: number;
-}
-
 export const locationUpdateRouter = Router();
 
 // Create Redis publisher
@@ -30,7 +23,8 @@ redisPublisher.connect().catch(console.error);
 /** post location updates from vehicles */
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 locationUpdateRouter.post('/', async (req, res) => {
-  const locationUpdate: LocationUpdate = req.body as LocationUpdate;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const locationUpdate = req.body;
 
   try {
     // Publish locationUpdate to Redis

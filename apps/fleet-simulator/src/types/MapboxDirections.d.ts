@@ -68,16 +68,16 @@ export interface DirectionsResponse {
 
 interface Vehicle {
   id: string;
-  latitude: number;
-  longitude: number;
+  lat: number;
+  lng: number;
   speed: number; // km/h
-  route: Position[]; // Array of [longitude, latitude] pairs
+  route: Position[]; // Array of [lng, lat] pairs
   routeIndex: number;
 }
 
 interface LocationUpdate {
   vehicleId: string;
-  latitude: number;
-  longitude: number;
+  lat: number;
+  lng: number;
   timestamp: number;
 }

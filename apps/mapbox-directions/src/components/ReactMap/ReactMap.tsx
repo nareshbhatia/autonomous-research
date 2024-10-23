@@ -24,6 +24,14 @@ interface RouteGeoJSON {
   geometry: LineString;
 }
 
+interface Viewport {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+  bearing?: number;
+  pitch?: number;
+}
+
 export function ReactMap() {
   // eslint-disable-next-line no-restricted-syntax
   const mapRef = useRef<MapRef | null>(null);
@@ -35,7 +43,7 @@ export function ReactMap() {
   // added because mapRef is not being updated on load of the map
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  const [viewport, setViewport] = useState({
+  const [viewport, setViewport] = useState<Viewport>({
     longitude: -98.5795,
     latitude: 39.8283,
     zoom: 3,

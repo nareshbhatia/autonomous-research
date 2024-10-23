@@ -17,7 +17,8 @@
     "roboto",
     "tailwindcss",
     "tsup",
-    "turborepo"
+    "turborepo",
+    "UNINSTANTIATED"
   ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
