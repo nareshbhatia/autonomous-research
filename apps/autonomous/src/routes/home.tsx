@@ -1,6 +1,6 @@
 import type { LocationUpdate, Vehicle } from '@/models';
 import type { Map } from 'mapbox-gl';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { Marker } from 'mapbox-gl';
 import { useCallback, useRef, useEffect, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
@@ -69,14 +69,17 @@ export function HomePage() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<Map | undefined>(undefined);
 
+  // Markers should persist across renders
+  const markers = useRef<Record<string, mapboxgl.Marker>>({});
+
   useEffect(() => {
     if (mapContainer.current && !map) {
       // eslint-disable-next-line import/no-named-as-default-member
       const initializeMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-98.5795, 39.8283], // Center of the USA
-        zoom: 3,
+        center: [-122.45, 37.75], // Center of San Francisco
+        zoom: 12, // Adjusted zoom level for a closer view of San Francisco
       });
 
       // eslint-disable-next-line import/no-named-as-default-member
@@ -85,6 +88,25 @@ export function HomePage() {
       setMap(initializeMap);
     }
   }, [map]);
+
+  useEffect(() => {
+    if (map) {
+      // Update markers whenever vehicles change
+      Object.values(vehicles).forEach((vehicle) => {
+        const { id, location } = vehicle;
+
+        if (markers.current[id] === undefined) {
+          // Create a new marker if it doesn't exist
+          markers.current[id] = new Marker()
+            .setLngLat([location.lng, location.lat])
+            .addTo(map);
+        } else {
+          // Update the marker's position if it already exists
+          markers.current[id].setLngLat([location.lng, location.lat]);
+        }
+      });
+    }
+  }, [map, vehicles]);
 
   return (
     <div>
