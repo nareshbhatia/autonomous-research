@@ -6,6 +6,9 @@ services:
     environment:
       - MAPBOX_TOKEN=[add your mapbox token here]
       - VEHICLE_EVENTS_URL=http://vehicle-events:8080
+      - VEHICLE_COUNT=50
+      - VEHICLE_ADD_FREQUENCY_MS=3000
+      - LOCATION_UPDATE_FREQUENCY_MS=1000
 
   vehicle-events:
     image: nareshbhatia/vehicle-events:1.0.0
@@ -14,7 +17,8 @@ services:
     environment:
       - PORT=8080
       - REDIS_URL=redis://redis-server:6379
-      - REDIS_LOCATION_UPDATES_CHANNEL=location-updates
+      - REDIS_VEHICLE_EVENTS_CHANNEL=vehicle-events
+      - LOG_REQUESTS=false
 
   api-gateway:
     image: nareshbhatia/api-gateway:1.0.0
@@ -23,7 +27,7 @@ services:
     environment:
       - PORT=8080
       - REDIS_URL=redis://redis-server:6379
-      - REDIS_LOCATION_UPDATES_CHANNEL=location-updates
+      - REDIS_VEHICLE_EVENTS_CHANNEL=vehicle-events
     ports:
       - '8080:8080'
 

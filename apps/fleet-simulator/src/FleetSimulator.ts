@@ -1,9 +1,9 @@
 import type {
-  DirectionsResponse,
-  LocationUpdate,
   Vehicle,
-} from './types/MapboxDirections';
-import axios from 'axios';
+  VehicleLocationUpdated,
+  VehicleRouteChanged,
+} from '@nareshbhatia/autonomous-research-domain';
+import { getRoute } from '@nareshbhatia/autonomous-research-domain';
 import { EventEmitter } from 'events';
 import type { Position } from 'geojson';
 
@@ -14,14 +14,14 @@ export class FleetSimulator extends EventEmitter {
   private readonly bounds: {
     minLat: number;
     maxLat: number;
-    minLon: number;
-    maxLon: number;
+    minLng: number;
+    maxLng: number;
   };
   private readonly mapboxToken: string;
 
   public constructor(
     updateIntervalMs: number,
-    bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number },
+    bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number },
     mapboxToken: string,
   ) {
     super();
@@ -35,9 +35,9 @@ export class FleetSimulator extends EventEmitter {
 
     const vehicle: Vehicle = {
       id,
-      lat: location[1],
-      lng: location[0],
+      location,
       speed: this.randomBetween(30, 80), // Random speed between 30 and 80 km/h
+      waypoints: [],
       route: [],
       routeIndex: 0,
     };
@@ -68,37 +68,16 @@ export class FleetSimulator extends EventEmitter {
     }
   }
 
-  private async getRoute(
-    start: [number, number],
-    end: [number, number],
-  ): Promise<Position[]> {
-    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}`;
-
-    try {
-      const response = await axios.get<DirectionsResponse>(url, {
-        params: {
-          geometries: 'geojson',
-          // eslint-disable-next-line camelcase
-          access_token: this.mapboxToken,
-        },
-      });
-      return response.data.routes[0].geometry.coordinates;
-    } catch (error) {
-      console.error('Error fetching route:', error);
-      return [start, end]; // Fallback to direct route if API call fails
-    }
-  }
-
   private async updateVehicleLocations() {
     for (const [id, vehicle] of this.vehicles) {
       await this.updateVehicleLocation(vehicle);
-      const update: LocationUpdate = {
+      const vehicleLocationUpdated: VehicleLocationUpdated = {
+        type: 'VehicleLocationUpdated',
         vehicleId: id,
-        lat: vehicle.lat,
-        lng: vehicle.lng,
-        timestamp: Date.now(),
+        location: vehicle.location,
+        timestamp: new Date(),
       };
-      this.emit('locationUpdate', update);
+      this.emit('vehicleEvent', vehicleLocationUpdated);
     }
   }
 
@@ -109,15 +88,10 @@ export class FleetSimulator extends EventEmitter {
       return;
     }
 
-    const nextPoint = vehicle.route[vehicle.routeIndex + 1] as Position;
+    const nextPoint = vehicle.route[vehicle.routeIndex + 1];
 
     // Calculate distance to next point
-    const distance = this.haversineDistance(
-      vehicle.lat,
-      vehicle.lng,
-      nextPoint[1],
-      nextPoint[0],
-    );
+    const distance = this.haversineDistance(vehicle.location, nextPoint);
 
     // Calculate time to next point based on current speed
     const timeToNextPoint = (distance / vehicle.speed) * 3600; // in seconds
@@ -125,12 +99,12 @@ export class FleetSimulator extends EventEmitter {
     if (timeToNextPoint <= this.updateIntervalMs / 1000) {
       // Vehicle has reached (or passed) the next point
       vehicle.routeIndex++;
-      [vehicle.lng, vehicle.lat] = nextPoint;
+      vehicle.location = nextPoint;
     } else {
       // Interpolate new position
       const ratio = this.updateIntervalMs / 1000 / timeToNextPoint;
-      vehicle.lat += (nextPoint[1] - vehicle.lat) * ratio;
-      vehicle.lng += (nextPoint[0] - vehicle.lng) * ratio;
+      vehicle.location[0] += (nextPoint[0] - vehicle.location[0]) * ratio;
+      vehicle.location[1] += (nextPoint[1] - vehicle.location[1]) * ratio;
     }
 
     // Occasionally change speed
@@ -141,16 +115,31 @@ export class FleetSimulator extends EventEmitter {
   }
 
   private async getNewRoute(vehicle: Vehicle): Promise<void> {
-    const startPoint: [number, number] = [vehicle.lng, vehicle.lat];
-    const endPoint = this.getRandomPointInBounds();
-    vehicle.route = await this.getRoute(startPoint, endPoint);
-    // console.log(`Vehicle ${vehicle.id} new route:`, vehicle.route);
+    const waypoints: Position[] = [
+      vehicle.location,
+      this.getRandomPointInBounds(),
+    ];
+    const result = await getRoute(waypoints, this.mapboxToken);
+
+    vehicle.location = [...result.waypoints[0]];
+    vehicle.waypoints = result.waypoints;
+    vehicle.route = result.route;
     vehicle.routeIndex = 0;
+    // console.log(`Vehicle ${vehicle.id} new route:`, vehicle.route);
+
+    const vehicleRouteChanged: VehicleRouteChanged = {
+      type: 'VehicleRouteChanged',
+      vehicleId: vehicle.id,
+      waypoints: vehicle.waypoints,
+      route: vehicle.route,
+      timestamp: new Date(),
+    };
+    this.emit('vehicleEvent', vehicleRouteChanged);
   }
 
-  private getRandomPointInBounds(): [number, number] {
+  private getRandomPointInBounds(): Position {
     return [
-      this.randomBetween(this.bounds.minLon, this.bounds.maxLon),
+      this.randomBetween(this.bounds.minLng, this.bounds.maxLng),
       this.randomBetween(this.bounds.minLat, this.bounds.maxLat),
     ];
   }
@@ -159,15 +148,13 @@ export class FleetSimulator extends EventEmitter {
     return Math.random() * (max - min) + min;
   }
 
-  private haversineDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ): number {
+  private haversineDistance(position1: Position, position2: Position): number {
+    const [lng1, lat1] = position1;
+    const [lng2, lat2] = position2;
+
     const R = 6371; // Earth's radius in km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const dLon = ((lng2 - lng1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((lat1 * Math.PI) / 180) *

@@ -4,7 +4,7 @@ import { WebSocketServer } from 'ws';
 const port = Number(process.env.PORT) || 8080;
 const redisUrl = process.env.REDIS_URL ?? 'redis://redis-server:6379';
 const redisChannel =
-  process.env.REDIS_LOCATION_UPDATES_CHANNEL ?? 'location-updates';
+  process.env.REDIS_VEHICLE_EVENTS_CHANNEL ?? 'vehicle-events';
 
 const sockets = new Map<number, WebSocket>();
 let nextId = 1;

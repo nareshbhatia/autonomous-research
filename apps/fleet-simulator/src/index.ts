@@ -1,33 +1,31 @@
 import { FleetSimulator } from './FleetSimulator';
-import type { LocationUpdate } from './types/MapboxDirections';
+import type { VehicleEvent } from '@nareshbhatia/autonomous-research-domain';
 import axios from 'axios';
 
 const mapboxToken = process.env.MAPBOX_TOKEN ?? '';
 const vehicleEventsUrl =
   process.env.VEHICLE_EVENTS_URL ?? 'http://vehicle-events:8080';
+const vehicleCount = Number(process.env.VEHICLE_COUNT ?? '10');
+const vehicleAddFrequencyMs = Number(
+  process.env.VEHICLE_ADD_FREQUENCY_MS ?? '2000',
+);
+const locationUpdateFrequencyMs = Number(
+  process.env.LOCATION_UPDATE_FREQUENCY_MS ?? '1000',
+);
 
-async function main() {
+function main() {
   const simulator = new FleetSimulator(
-    1000, // Update every 1 seconds
-    { minLat: 37.7, maxLat: 37.8, minLon: -122.5, maxLon: -122.4 }, // San Francisco area
+    locationUpdateFrequencyMs,
+    { minLat: 37.7, maxLat: 37.8, minLng: -122.5, maxLng: -122.4 }, // San Francisco area
     mapboxToken,
   );
 
-  // Add vehicles every 2 seconds
-  console.log('fleet-simulator: adding vehicles...');
-  for (let i = 1; i <= 10; i++) {
-    await simulator.addVehicle(`v${i}`);
-    if (i < 10) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-  }
-
-  // Listen for location updates
-  simulator.on('locationUpdate', (update: LocationUpdate) => {
-    // send location update to vehicle events service
-    const url = `${vehicleEventsUrl}/location-update`;
+  // Listen for vehicle events from the simulator
+  simulator.on('vehicleEvent', (event: VehicleEvent) => {
+    // send event to vehicle events service
+    const url = `${vehicleEventsUrl}/api/vehicles/${event.vehicleId}/event`;
     axios
-      .post(url, update)
+      .post(url, event)
       .then(() => true)
       .catch((error) => {
         console.error('Error posting location:', error);
@@ -38,15 +36,19 @@ async function main() {
   console.log('fleet-simulator: started');
   simulator.start();
 
-  /*
-   * Run for 5 minutes
-   * await new Promise((resolve) => setTimeout(resolve, 300000));
-   */
+  // Add vehicles every vehicleAddFrequencyMs
+  console.log('fleet-simulator: adding vehicles...');
+  let i = 0;
+  setInterval(() => {
+    async function AddVehicle() {
+      if (i < vehicleCount) {
+        await simulator.addVehicle(`v${i + 1}`);
+        i++;
+      }
+    }
 
-  /*
-   * Stop the simulation
-   * simulator.stop();
-   */
+    void AddVehicle();
+  }, vehicleAddFrequencyMs);
 }
 
-main().catch(console.error);
+main();

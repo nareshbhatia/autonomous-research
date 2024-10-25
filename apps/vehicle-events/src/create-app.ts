@@ -3,8 +3,9 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
-// import morgan from 'morgan';
+import morgan from 'morgan';
 
+const logRequests = process.env.LOG_REQUESTS === 'true';
 function appErrorHandler(
   err: Error,
   _: Request,
@@ -23,7 +24,9 @@ export function createApp() {
   const app = express();
 
   // Add middleware to log requests
-  /* app.use(morgan('combined')); */
+  if (logRequests) {
+    app.use(morgan('combined'));
+  }
 
   // Add middleware to enable CORS
   app.use(cors());

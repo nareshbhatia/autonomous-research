@@ -1,4 +1,7 @@
-import type { LocationUpdate, Vehicle } from '@/models';
+import type {
+  Vehicle,
+  VehicleEvent,
+} from '@nareshbhatia/autonomous-research-domain';
 import type { Map } from 'mapbox-gl';
 import mapboxgl, { Marker } from 'mapbox-gl';
 import { useCallback, useRef, useEffect, useState } from 'react';
@@ -13,28 +16,41 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
 export function HomePage() {
   const [vehicles, setVehicles] = useState<Record<string, Vehicle>>({});
+  const [selectedVehicleId, setSelectedVehicleId] = useState<
+    string | undefined
+  >(undefined);
 
-  const handleLocationUpdate = useCallback((newLocation: LocationUpdate) => {
-    setVehicles((prev) => ({
-      ...prev,
-      [newLocation.vehicleId]: {
-        ...prev[newLocation.vehicleId],
-        id: newLocation.vehicleId,
-        location: {
-          lat: newLocation.lat,
-          lng: newLocation.lng,
-        },
-      },
-    }));
+  const handleVehicleEvent = useCallback((e: VehicleEvent) => {
+    switch (e.type) {
+      case 'VehicleLocationUpdated':
+        setVehicles((prev) => ({
+          ...prev,
+          [e.vehicleId]: {
+            ...prev[e.vehicleId],
+            id: e.vehicleId,
+            location: e.location,
+          },
+        }));
+        break;
+      case 'VehicleRouteChanged':
+        setVehicles((prev) => ({
+          ...prev,
+          [e.vehicleId]: {
+            ...prev[e.vehicleId],
+            id: e.vehicleId,
+            waypoints: e.waypoints,
+            route: e.route,
+          },
+        }));
+        break;
+    }
   }, []);
 
   const { readyState } = useWebSocket(apiUrl, {
     onMessage: (event) => {
       try {
-        const locationUpdate = JSON.parse(
-          event.data as string,
-        ) as LocationUpdate;
-        handleLocationUpdate(locationUpdate);
+        const vehicleEvent = JSON.parse(event.data as string) as VehicleEvent;
+        handleVehicleEvent(vehicleEvent);
       } catch (err) {
         console.error('Failed to parse WebSocket message:', err);
       }
@@ -72,6 +88,7 @@ export function HomePage() {
   // Markers should persist across renders
   const markers = useRef<Record<string, mapboxgl.Marker>>({});
 
+  // Initialize the map
   useEffect(() => {
     if (mapContainer.current && !map) {
       // eslint-disable-next-line import/no-named-as-default-member
@@ -89,24 +106,85 @@ export function HomePage() {
     }
   }, [map]);
 
+  // Update markers whenever vehicles change
   useEffect(() => {
     if (map) {
       // Update markers whenever vehicles change
       Object.values(vehicles).forEach((vehicle) => {
         const { id, location } = vehicle;
+        if (location === undefined) {
+          return;
+        }
 
         if (markers.current[id] === undefined) {
           // Create a new marker if it doesn't exist
-          markers.current[id] = new Marker()
-            .setLngLat([location.lng, location.lat])
+          const marker = new Marker()
+            .setLngLat([location[0], location[1]])
             .addTo(map);
+
+          marker.getElement().addEventListener('click', () => {
+            setSelectedVehicleId((prevSelectedId) =>
+              prevSelectedId === id ? undefined : id,
+            );
+          });
+
+          markers.current[id] = marker;
         } else {
           // Update the marker's position if it already exists
-          markers.current[id].setLngLat([location.lng, location.lat]);
+          const marker = markers.current[id];
+          marker.setLngLat([location[0], location[1]]);
         }
       });
     }
   }, [map, vehicles]);
+
+  // Update the route whenever the selected vehicle changes
+  useEffect(() => {
+    console.log('Selected vehicle:', selectedVehicleId);
+
+    if (map) {
+      if (selectedVehicleId === undefined) {
+        if (map.getLayer('route')) {
+          map.removeLayer('route');
+        }
+        if (map.getSource('route')) {
+          map.removeSource('route');
+        }
+      } else if (vehicles[selectedVehicleId].route !== undefined) {
+        const geojson = {
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: vehicles[selectedVehicleId].route,
+          },
+        };
+
+        if (map.getSource('route')) {
+          (map.getSource('route') as mapboxgl.GeoJSONSource).setData(geojson);
+        } else {
+          map.addSource('route', {
+            type: 'geojson',
+            data: geojson,
+          });
+
+          map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': '#3887be',
+              'line-width': 5,
+              'line-opacity': 0.75,
+            },
+          });
+        }
+      }
+    }
+  }, [map, vehicles, selectedVehicleId]);
 
   return (
     <div>
@@ -123,10 +201,14 @@ export function HomePage() {
           {Object.values(vehicles).map((vehicle) => (
             <div className="rounded border p-4" key={vehicle.id}>
               <h3 className="font-bold">{vehicle.id}</h3>
-              <p>
-                {vehicle.location.lat.toFixed(6)},
-                {vehicle.location.lng.toFixed(6)}
-              </p>
+              {vehicle.location === undefined ? (
+                <p>No location</p>
+              ) : (
+                <p>
+                  {vehicle.location[0].toFixed(6)},
+                  {vehicle.location[1].toFixed(6)}
+                </p>
+              )}
             </div>
           ))}
         </div>
