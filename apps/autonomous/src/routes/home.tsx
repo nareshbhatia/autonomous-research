@@ -140,8 +140,6 @@ export function HomePage() {
 
   // Update the route whenever the selected vehicle changes
   useEffect(() => {
-    console.log('Selected vehicle:', selectedVehicleId);
-
     if (map) {
       if (selectedVehicleId === undefined) {
         if (map.getLayer('route')) {
