@@ -1,6 +1,14 @@
 # Autonomous Research
 
-Research before the full-fledged autonomous project.
+Research before the full-fledged autonomous project. Here's a screenshot of the
+current state of the app. Note that the app shows the route of the selected
+vehicle from the starting point to the destination.
+
+![Autonomous Screenshot](assets/screenshot.jpg)
+
+## Architecture
+
+![Architecture](assets/architecture.png)
 
 ## Prerequisites for development
 
