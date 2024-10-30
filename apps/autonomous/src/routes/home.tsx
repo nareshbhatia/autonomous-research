@@ -149,8 +149,9 @@ export function HomePage() {
           map.removeSource('route');
         }
       } else if (vehicles[selectedVehicleId].route !== undefined) {
-        const geojson = {
+        const geojson: GeoJSON.Feature = {
           type: 'Feature',
+          properties: {},
           geometry: {
             type: 'LineString',
             coordinates: vehicles[selectedVehicleId].route,
