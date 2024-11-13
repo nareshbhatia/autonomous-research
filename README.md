@@ -1,14 +1,49 @@
 # Autonomous Research
 
-Research before the full-fledged autonomous project. Here's a screenshot of the
-current state of the app. Note that the app shows the route of the selected
-vehicle from the starting point to the destination.
+Research before the full-fledged autonomous project.
+
+## Autonomous App
+
+Here's a screenshot of the current state of the app. Note that the app shows the
+route of the selected vehicle from the starting point to the destination.
 
 ![Autonomous Screenshot](assets/screenshot.jpg)
 
-## Architecture
+### Architecture
 
 ![Architecture](assets/architecture.png)
+
+### Workspaces
+
+- Fleet Simulator: `apps/fleet-simulator`
+- Vehicle Events Service: `apps/vehicle-events`
+- Redis Server: Started via `./docker-compose.yml`
+- API Gateway: `apps/api-gateway`
+- Autonomous Frontend: `apps/autonomous`
+- Type definitions and shared functions:`packages/autonomous-research-domain`
+- Vehicle Actions Service: Not implemented yet
+
+### Running the Autonomous App
+
+- Build all workspaces: `npm run build`
+- Build all Docker images:
+  - Fleet Simulator: `cd apps/fleet-simulator && npm run docker-build`
+  - Vehicle Events Service: `cd apps/vehicle-events && npm run docker-build`
+  - API Gateway: `cd apps/api-gateway && npm run docker-build`
+- Run the Autonomous frontend:
+  - `cd apps/autonomous && npm run dev`
+  - Open browser window at http://localhost:3000/
+- Run Docker Compose:
+  - `docker compose up`
+  - Then immediately refresh the Autonomous home page in the browser so that all
+    markers get routes
+
+### Mapbox Directions App
+
+A simple app to demonstrate the use of Mapbox Directions API.
+
+Go to `apps/mapbox-directions` and follow the instructions in the
+[README](apps/mapbox-directions/README.md).
 
 ## Prerequisites for development
 
@@ -29,7 +64,7 @@ npm run storybook
 
 Open browser windows at the following URLs to see the respective apps:
 
-1. http://localhost:3000/: Autonomous Research
+1. http://localhost:3000/: Autonomous App
 2. http://localhost:6006/: Storybook
 
 > Note: Do not run `npm install` or `npm ci` in any of the subdirectories. It

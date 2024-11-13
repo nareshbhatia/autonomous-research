@@ -25,7 +25,7 @@ export function HomePage() {
             ReactMapBuggy
           </Link>
           <p className="mt-1 truncate text-xs leading-5 text-muted-foreground">
-            A buggy implementation of that does not update mapRef
+            A buggy implementation of ReactMap that does not update mapRef
           </p>
         </li>
       </ul>
